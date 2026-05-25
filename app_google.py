@@ -21,12 +21,15 @@ def cargar_datos():
 
 try:
     df = cargar_datos()
+    # Obtener el último precio y variación para los KPIs
     ultimo_cierre = float(df['Close'].iloc[-1])
     cierre_anterior = float(df['Close'].iloc[-2])
     variacion = ultimo_cierre - cierre_anterior
     porcentaje_var = (variacion / cierre_anterior) * 100
 except Exception as e:
-    st.error(# "Error al cargar los datos de Yahoo Finance. Intenta más tarde.")
+    # Se eliminó el '#' que causaba el error de cierre de paréntesis
+    st.error("Error al cargar los datos de Yahoo Finance. Intenta más tarde.")
+    st.sidebar.error(f"Detalle técnico: {e}")
     st.stop()
 
 # --- Título Principal ---
