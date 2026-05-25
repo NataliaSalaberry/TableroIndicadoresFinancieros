@@ -15,22 +15,25 @@ st.set_page_config(
 @st.cache_data(ttl=3600)  # Guarda los datos en caché por 1 hora
 def cargar_datos():
     ticker = "GOOGL"
-    datos = yf.download(ticker, period="2y", interval="1d")
-
+    datos = yf.download(ticker, period="2y", interval="1d", group_by='ticker')
+    
     if isinstance(datos.columns, pd.MultiIndex):
-        datos = datos.xs(ticker, axis=1, level=1)
-        
+        datos.columns = datos.columns.droplevel(0)  # Elimina el nivel del Ticker ('GOOGL')
+   
     datos = datos.reset_index()
+    datos.rename(columns={datos.columns[0]: 'Date'}, inplace=True)
+    
     return datos
 
 try:
     df = cargar_datos()
-    ultimo_cierre = float(df['Close'].iloc[-1])
-    cierre_anterior = float(df['Close'].iloc[-2])
+    ultimo_cierre = float(df['Close'].iloc[-1].item() if hasattr(df['Close'].iloc[-1], 'item') else df['Close'].iloc[-1])
+    cierre_anterior = float(df['Close'].iloc[-2].item() if hasattr(df['Close'].iloc[-2], 'item') else df['Close'].iloc[-2])
+    
     variacion = ultimo_cierre - cierre_anterior
     porcentaje_var = (variacion / cierre_anterior) * 100
 except Exception as e:
-    st.error("Error al cargar los datos de Yahoo Finance. Intenta más tarde.")
+    st.error("Error al cargar o procesar los datos de Yahoo Finance.")
     st.sidebar.error(f"Detalle técnico: {e}")
     st.stop()
 
